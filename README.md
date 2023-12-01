@@ -11,5 +11,5 @@ Rust Solutions
 
 # Rust Solutions
 
-1. [Day 1]('./rust_aoc_2023/day_01/')
+1. [Day 1]('https://github.com/nooodle-soup/advent_of_code_2023/tree/master/rust_aoc_2023/day_01')
 </details>
