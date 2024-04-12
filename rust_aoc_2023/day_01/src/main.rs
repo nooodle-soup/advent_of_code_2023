@@ -30,12 +30,20 @@ fn main() {
     // the document.
 
     println!("DAY 01");
-    match part1("src/input_part1.txt") {
+    match part1("src/input.txt") {
         Ok(sum) => {
             println!("SUCCESS PART 1:  {}", sum);
         }
         Err(err) => {
             println!("FAILURE PART 1: {}", err);
+        }
+    }
+    match part2("src/input.txt") {
+        Ok(sum) => {
+            println!("SUCCESS PART 2:  {}", sum);
+        }
+        Err(err) => {
+            println!("FAILURE PART 2: {}", err);
         }
     }
 
@@ -48,47 +56,84 @@ fn part1(file_path: &str) -> io::Result<u32>{
     // found by combining the first digit and the last digit (in that order)
     // to form a single two-digit number.
 
-    let mut calibration_values = Vec::<u32>::new();
-    
     let file = File::open(file_path)?;
     let reader = BufReader::new(file);
 
-    for line in reader.lines() {
-        let mut first_digit: Option<u32> = None;
-        let mut last_digit: Option<u32> = None;
-
-        let line = line?;
-        for c in line.chars() {
-            if let Some(digit) = c.to_digit(10) {
-                if first_digit.is_none() {
-                    first_digit = Some(digit);
+    let output = reader
+        .lines() // Get all lines
+        .map(|line| { // Map each line
+            let l = line.expect("Must be a line"); // Unwrap line
+            let mut it = l
+                .chars() // Get each character
+                .filter_map(|character| { // Filter to digit
+                    character.to_digit(10)
                 }
-                last_digit = Some(digit);
+            );
+            let first = it.next().expect("should be a number");
+            
+            match it.last() {
+                Some(num) => format!("{first}{num}"),
+                None => format!("{first}{first}")
             }
-        }
+            .parse::<u32>()
+            .expect("Should be a valid number")
+        })
+        .sum::<u32>();
 
-        if let (Some(first), Some(last)) = (first_digit, last_digit) {
-            let combined = format!("{}{}", first, last).parse::<u32>();
-            match combined {
-                Ok(int_val) => {
-                    calibration_values.push(int_val);
-                }
-                Err(err) => {
-                    println!("Error creating integer: {}", err);
-                }
-            }
-        }
-    }
-
-    let sum: u32 = calibration_values.iter().sum();
-
-    Ok(sum)
+    Ok(output)
 }
 
-fn part2() {
+fn part2(file_path: &str) -> io::Result<u32> {
     // Your calculation isn't quite right. It looks like some of the digits
     // are actually spelled out with letters: one, two, three, four, five,
     // six, seven, eight, and nine also count as valid "digits".
+
+    let file = File::open(file_path)?;
+    let reader = BufReader::new(file);
+
+    let output = reader
+        .lines()
+        .map(|line| {
+            let l = line.unwrap();
+            let mut it = (0..l.len()).filter_map(|index| {
+                let reduced_line = &l[index..];
+                let result = if reduced_line.starts_with("one") {
+                    '1'
+                } else if reduced_line.starts_with("two") {
+                    '2'
+                } else if reduced_line.starts_with("three") {
+                    '3'
+                } else if reduced_line.starts_with("four") {
+                    '4'
+                } else if reduced_line.starts_with("five") {
+                    '5'
+                } else if reduced_line.starts_with("six") {
+                    '6'
+                } else if reduced_line.starts_with("seven") {
+                    '7'
+                } else if reduced_line.starts_with("eight") {
+                    '8'
+                } else if reduced_line.starts_with("nine") {
+                    '9'
+                } else {
+                    reduced_line.chars().next().unwrap()
+                };
+
+                result.to_digit(10)
+            }
+        );
+        let first = it.next().expect("should be a number");
+
+        match it.last() {
+            Some(num) => format!("{first}{num}"),
+            None => format!("{first}{first}"),
+        }
+        .parse::<u32>()
+            .expect("should be a valid number")
+
+        }).sum::<u32>();
+
+    Ok(output)
 }
 
 #[cfg(test)]
@@ -102,6 +147,21 @@ mod tests {
         match part1(test_file_path) {
             Ok(result) => {
                 assert_eq!(result, 142);
+            }
+            Err(err) => {
+                panic!("ERROR: {err}");
+            }
+        }
+
+    }
+
+    #[test]
+    fn test_part2() {
+        let test_file_path = "src/test_input_part2.txt";
+
+        match part2(test_file_path) {
+            Ok(result) => {
+                assert_eq!(result, 281);
             }
             Err(err) => {
                 panic!("ERROR: {err}");
